@@ -30,14 +30,14 @@ def predict():
         return jsonify({'error': 'No selected file'})
 
     image = file.read()
-    '''processed_image = preprocess_image(image)
+    processed_image = preprocess_image(image)
     preds = model.predict(processed_image)
 
     # Convert prediction probabilities to class labels
     dic = {0: "Alzheimer's disease", 1: "Cognitively normal", 2: "Early mild cognitive impairment", 3: "Late mild cognitive impairment"}
 
     pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
-    pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class'''
+    pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class
     return jsonify({'Prediction':pred_class ,'Probability':pred_proba})
 
 if __name__ == '__main__':
