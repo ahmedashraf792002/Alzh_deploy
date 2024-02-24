@@ -38,7 +38,7 @@ def predict():
 
     pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
     pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class'''
-    return  return jsonify({'Prediction':pred_class ,'Probability':pred_proba})
+    return jsonify({'Prediction':pred_class ,'Probability':pred_proba})
 
 if __name__ == '__main__':
     app.run(debug=True)
