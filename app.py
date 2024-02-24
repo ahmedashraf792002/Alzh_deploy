@@ -32,11 +32,11 @@ def predict():
         
             pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
             pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class
-            return  pred_class+" "+pred_proba
+            return  jsonify(pred_class+" "+pred_proba)
 
     except:
         error = "File cannot be processed."
-        return render_template("result.html", err=error)
+        return jsonify(error)
 
 
 
