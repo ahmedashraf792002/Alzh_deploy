@@ -10,4 +10,3 @@ MarkupSafe
 tensorflow
 keras
 Pillow
-opencv
