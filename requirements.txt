@@ -10,3 +10,4 @@ MarkupSafe
 tensorflow
 keras
 Pillow
+PIL
