@@ -7,16 +7,15 @@ import io
 app = Flask(__name__)
 model = load_model('model_VGG16.h5')
 
-import cv2
-
 def preprocess_image(image):
     img = Image.open(io.BytesIO(image))
     if img.mode != 'RGB':
         img = img.convert('RGB')
-    img = img.resize((224, 224)) 
+    img = img.resize((224, 224))
     img_array = np.array(img)
     if img_array.shape[-1] != 3:
-        img_array = cv2.cvtColor(img_array, cv2.COLOR_GRAY2RGB)
+        # If the image is not in RGB format, convert it
+        img_array = np.stack((img_array,) * 3, axis=-1)
     img_array = img_array / 255.0
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
@@ -40,14 +39,10 @@ def predict():
 
     # Convert prediction probabilities to class labels
     dic = {0: "Alzheimer's disease", 1: "Cognitively normal", 2: "Early mild cognitive impairment", 3: "Late mild cognitive impairment"}
-    
+
     pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
     pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class
     return  pred_class+" "+pred_proba
-
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
