@@ -1,20 +1,24 @@
 from flask import Flask, render_template, request, jsonify
 from tensorflow.keras.models import load_model
 import numpy as np
-from keras.preprocessing import image
+from PIL import Image
 import io
-from keras.applications.vgg16 import preprocess_input
+
 app = Flask(__name__)
 model = load_model('model_VGG16.h5')
 
-def preprocess_image(img_path):
-    # Preprocessing the image
-    img = image.load_img(img_path, target_size=(224,224))
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
-
-    return x
+def preprocess_image(image):
+    img = Image.open(io.BytesIO(image))
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+    img = img.resize((224, 224))
+    img_array = np.array(img)
+    if img_array.shape[-1] != 3:
+        # If the image is not in RGB format, convert it
+        img_array = np.stack((img_array,) * 3, axis=-1)
+    img_array = img_array / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
 
 @app.route('/')
 def index():
