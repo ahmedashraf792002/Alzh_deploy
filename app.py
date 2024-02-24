@@ -3,22 +3,18 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 import io
-
+from keras.preprocessing import image
 app = Flask(__name__)
 model = load_model('model_VGG16.h5')
 
-def preprocess_image(image):
-    img = Image.open(io.BytesIO(image))
-    if img.mode != 'RGB':
-        img = img.convert('RGB')
-    img = img.resize((224, 224))
-    img_array = np.array(img)
-    if img_array.shape[-1] != 3:
-        # If the image is not in RGB format, convert it
-        img_array = np.stack((img_array,) * 3, axis=-1)
-    img_array = img_array / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-    return img_array
+from keras.utils import img_to_array
+
+def preprocess_image(img_path):
+    op_img = Image.open(img_path)
+    img_resize = op_img.resize((224, 224))
+    img2arr = img_to_array(img_resize) / 255.0
+    img_reshape = img2arr.reshape(1, 224, 224, 3)
+    return img_reshape
 
 @app.route('/')
 def index():
@@ -26,23 +22,26 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
+    try:
+        if request.method == 'POST':
+            img = preprocess_image(request.files['file'].stream)
+            preds = model.predict(img)
+        
+            # Convert prediction probabilities to class labels
+            dic = {0: "Alzheimer's disease", 1: "Cognitively normal", 2: "Early mild cognitive impairment", 3: "Late mild cognitive impairment"}
+        
+            pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
+            pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class
+            return  pred_class+" "+pred_proba
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+    except:
+        error = "File cannot be processed."
+        return render_template("result.html", err=error)
 
-    image = file.read()
-    processed_image = preprocess_image(image)
-    preds = model.predict(processed_image)
 
-    # Convert prediction probabilities to class labels
-    dic = {0: "Alzheimer's disease", 1: "Cognitively normal", 2: "Early mild cognitive impairment", 3: "Late mild cognitive impairment"}
 
-    pred_class = dic[np.argmax(preds)]   # Get the class label with maximum probability
-    pred_proba = str(round(float(preds[0, np.argmax(preds)]),2))+"%"  # Get the probability of the predicted class
-    return  pred_class+" "+pred_proba
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
